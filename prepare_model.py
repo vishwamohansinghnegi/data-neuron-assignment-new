@@ -24,7 +24,6 @@ def prepare_and_save_model():
     print("Quantization complete.")
 
     # --- 3. Save the Quantized Model ---
-    # We save the entire model object using torch.save
     torch.save(quantized_model, save_path)
     print(f"\nQuantized model saved successfully to '{save_path}'")
     print("You can now use this file in your Flask application.")

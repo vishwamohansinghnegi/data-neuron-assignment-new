@@ -1,49 +1,37 @@
-# run_similarity_simple.py
+import torch
+import pandas as pd
 
-from sentence_transformers.cross_encoder import CrossEncoder
+# --- 1. CONFIGURATION ---
+MODEL_PATH = 'quantized_model.pth'
+CSV_FILE = 'DataNeuron_Text_Similarity.csv'
+NUMBER_OF_SAMPLES = 5
 
-# --- 1. Load the model once when the script starts ---
-print("Loading the Cross-Encoder model...")
-model = CrossEncoder('cross-encoder/stsb-roberta-large')
-print("Model loaded successfully.\n")
+# --- 2. LOAD THE MODEL ---
+print(f"Loading model from '{MODEL_PATH}'...")
+model = torch.load(MODEL_PATH, weights_only=False)
+model.eval()
+print("Model loaded successfully.")
 
+# --- 3. LOAD AND SAMPLE THE DATA ---
+print(f"\nLoading data from '{CSV_FILE}'...")
+df = pd.read_csv(CSV_FILE)
+# Take a random sample of rows from the DataFrame
+sample_df = df.sample(n=NUMBER_OF_SAMPLES)
+print(f"Successfully loaded and sampled {NUMBER_OF_SAMPLES} random pairs.")
 
-def get_similarity_score(text1: str, text2: str) -> float:
-    """
-    Takes a single pair of texts and returns their similarity score.
-    This is a simple, single-purpose function.
+# --- 4. PROCESS THE RANDOM PAIRS ---
+print("\n--- Calculating Scores for Random Pairs ---")
 
-    Args:
-        text1 (str): The first piece of text.
-        text2 (str): The second piece of text.
-
-    Returns:
-        float: The similarity score.
-    """
-    # The model's predict method calculates the score for the given pair.
+# Iterate through each row of the sampled DataFrame
+for index, row in sample_df.iterrows():
+    text1 = row['text1']
+    text2 = row['text2']
+    
+    print(f"\n--- Pair {index+1} ---")
+    print(f"Text 1: {text1}")
+    print(f"Text 2: {text2}")
+    
+    # Calculate the score for the pair
     score = model.predict((text1, text2), show_progress_bar=False)
-    return float(score)
-
-
-if __name__ == '__main__':
-    # --- 2. DEFINE INPUT DATA ---
-    input_data = [
-        {
-            "text1": "The International Space Station is in low Earth orbit.",
-            "text2": "Orbiting the Earth is a large satellite called the ISS."
-        },
-        {
-            "text1": "The team celebrated their victory.",
-            "text2": "The team was disappointed by their loss."
-        },
-        {
-            "text1": "Baking a perfect sourdough loaf requires a patient technique.",
-            "text2": "The new policy will focus on improving public transportation."
-        }
-    ]
-
-    # --- 3. Process each pair by calling the function ---
-    print("--- Processing Pairs ---")
-    for i, pair in enumerate(input_data):
-        score = get_similarity_score(pair["text1"], pair["text2"])
-        print(f"Pair {i+1} Score: {score:.4f}")
+    
+    print(f"Similarity Score: {float(score):.4f}")
